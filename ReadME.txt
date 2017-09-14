@@ -1,4 +1,11 @@
-﻿GIT
+﻿Building ASP COre app using VS 2017
+Angular2 will be serving the client side 
+The Back end is ASP Core WEB API and entity framework
+Main goal here is to add security to my simple application
+First: Securing my WEB API calls
+Second: Client side security using Angular
+
+GIT
 echo "# ToastmasterClub" >> README.md
 git init
 git add README.md
