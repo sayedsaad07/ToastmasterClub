@@ -1,4 +1,13 @@
-﻿Angular/CLI helper
+﻿GIT
+echo "# ToastmasterClub" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/sayedsaad07/ToastmasterClub.git
+git push -u origin master
+
+
+Angular/CLI helper
 	"npm install --save-dev @angular/cli@latest"
 	ng generate service MyService
 
