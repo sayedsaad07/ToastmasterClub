@@ -11,33 +11,35 @@ using BookKeeperSPAAngular.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BookKeeperSPAAngular
 {
     public class Startup
     {
-        public IConfiguration Configuration { get; }
+        private IConfiguration _Configuration;
         IHostingEnvironment _env;
         public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
             _env = env;
-            Configuration = configuration;
+            _Configuration = configuration;
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
-            Configuration = builder.Build();
+            _Configuration = builder.Build();
 
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(_Configuration);
             //BookKeeperContext
             services.AddDbContext<BookKeeperContext>(options
                 => options.UseSqlServer(
-                        Configuration.GetConnectionString("DefaultConnection")
+                        _Configuration.GetConnectionString("DefaultConnection")
                     //,
                     //optionbuilder => optionbuilder.MigrationsAssembly("BookKeeperSPAAngularMigrationfile")
                     )
@@ -54,16 +56,26 @@ namespace BookKeeperSPAAngular
             services.AddScoped<IBookKeeperRepository, BookKeeperRepository>();
             services.AddTransient<IMessageService, FileMessageService>();
             services.AddMvc();
+            services.AddMvc(option =>
+            {
+                //option.Filters.Add(new RequireHttpsAttribute());
+            });
+            //only first time
+            services.AddScoped<InitBookKeeper>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app
             , ILoggerFactory loggerFactory
-            , BookKeeperContext dbContext)
+            , BookKeeperContext dbContext
+            , InitBookKeeper seeder)
         {
 
+            loggerFactory.AddConsole(_Configuration.GetSection("Logging"));
+            loggerFactory.AddDebug();
             if (_env.IsDevelopment())
             {//dotnet run --environment "Development"
+
                 app.UseDeveloperExceptionPage();
                 dbContext.Database.Migrate(); //this will generate the db if it does not exist
                 app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
@@ -88,6 +100,8 @@ namespace BookKeeperSPAAngular
                     name: "spa-fallback",
                     defaults: new { controller = "Home", action = "Index" });
             });
+            if (_env.IsDevelopment())
+            { seeder.SeedData().Wait(); }
         }
     }
 }

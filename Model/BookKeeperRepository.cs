@@ -29,7 +29,8 @@ namespace BookKeeperSPAAngular.Model
                     BookUrl = bk.BookUrl,
                     Category = bk.Category,
                     Rating = bk.Rating,
-                    Startreading = bk.Startreading
+                    Startreading = bk.Startreading,
+                    StopReading = bk.StopReading
                 };
                 b.StopReading = bk.StopReading;
                 bookKeeperList.Add(b);
@@ -55,9 +56,9 @@ namespace BookKeeperSPAAngular.Model
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddbookKeeper(BookKeeper bookKeeper)
+        public async Task AddbookKeeper(BookKeeper book)
         {
-            _context.BookKeeper.Add(bookKeeper);
+            _context.BookKeeper.Add(book);
             await _context.SaveChangesAsync();
         }
 
