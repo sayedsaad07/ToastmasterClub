@@ -11,9 +11,10 @@ using System;
 namespace BookKeeperSPAAngular.Migrations
 {
     [DbContext(typeof(BookKeeperContext))]
-    partial class BookKeeperContextModelSnapshot : ModelSnapshot
+    [Migration("20170921103631_bookkeeperuser")]
+    partial class bookkeeperuser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

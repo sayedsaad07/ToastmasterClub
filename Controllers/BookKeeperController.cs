@@ -34,13 +34,11 @@ namespace BookKeeperSPAAngular.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBook()
         {
-            int userid = 1;
-
             var user = await _UserManager.FindByNameAsync(this.User.Identity.Name);
             if (user != null)
             {
                 _logger.LogInformation($"logged in user id{user.Id} and name {user.UserName}");
-                return Json(await _repository.GettBooksByUser(userid));
+                return Json(await _repository.GettBooksByUser(user.UserName));
             }
             return BadRequest("User does not have access");
         }
@@ -50,6 +48,7 @@ namespace BookKeeperSPAAngular.Controllers
         [HttpGet("{id}", Name = "BookGET")]
         public async Task<IActionResult> GetbookKeeper([FromRoute] int id, bool includechilddata = false)
         {
+            var user = await _UserManager.FindByNameAsync(this.User.Identity.Name);
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -58,8 +57,7 @@ namespace BookKeeperSPAAngular.Controllers
 
             if (includechilddata)
             {
-                int userid = 1;
-                return Json(await _repository.GettBooksByUser(userid));
+                return Json(await _repository.GettBooksByUser(this.User.Identity.Name));
             }
             if (book == null)
             {
@@ -77,6 +75,7 @@ namespace BookKeeperSPAAngular.Controllers
             try
             {
                 _logger.LogInformation("Add a new book to my user Library");
+                var user = await _UserManager.FindByNameAsync(this.User.Identity.Name);
                 if (bookKeeperVM != null)
                 {
                     var book = new BookKeeper()

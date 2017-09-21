@@ -18,5 +18,6 @@ namespace BookKeeperSPAAngular.Model
         public DateTime StopReading { get; set; }
         public short Rating { get; set; }
         public string BookUrl { get; set; }
+        public string UserName { get; set; }
     }
 }

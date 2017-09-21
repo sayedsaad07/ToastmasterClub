@@ -8,7 +8,7 @@ namespace BookKeeperSPAAngular.Model
         Task AddbookKeeper(BookKeeper bookKeeper);
         Task<BookKeeper> bookKeeperExists(int bookKeeperid);
         Task<BookKeeper> GetbookKeeperByID(int id);
-        Task<List<BookKeeperViewModel>> GettBooksByUser(int userid);
+        Task<List<BookKeeperViewModel>> GettBooksByUser(string userid);
         Task RemovebookKeeper(BookKeeper bookKeeper);
         Task UpdatebookKeeperByID(BookKeeper bookKeeper);
     }

@@ -13,12 +13,12 @@ namespace BookKeeperSPAAngular.Model
         {
             _context = context;
         }
-        public async Task<List<BookKeeperViewModel>> GettBooksByUser(int userid)
+        public async Task<List<BookKeeperViewModel>> GettBooksByUser(string username)
         {
             List<BookKeeperViewModel> bookKeeperList = new List<BookKeeperViewModel>();
             var datalist = await (from b in _context.BookKeeper
-                                  where b.Userid == userid
-                                  select new { b.BookKeeperId, b.BookName, b.BookUrl, b.Category, b.Rating, b.Startreading, b.StopReading }
+                                  where b.BookKeeperUser.UserName == username
+                                  select new { b.BookKeeperId, b.BookName, b.BookUrl, b.Category, b.Rating, b.Startreading, b.StopReading , b.BookKeeperUser.UserName }
                                   ).ToListAsync();
             datalist.ForEach(bk =>
             {
@@ -30,7 +30,8 @@ namespace BookKeeperSPAAngular.Model
                     Category = bk.Category,
                     Rating = bk.Rating,
                     Startreading = bk.Startreading,
-                    StopReading = bk.StopReading
+                    StopReading = bk.StopReading,
+                    UserName = bk.UserName
                 };
                 b.StopReading = bk.StopReading;
                 bookKeeperList.Add(b);
