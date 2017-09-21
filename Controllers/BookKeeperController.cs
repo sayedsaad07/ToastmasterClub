@@ -6,30 +6,43 @@ using System.Threading.Tasks;
 using BookKeeperSPAAngular.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace BookKeeperSPAAngular.Controllers
 {
-
+    [Authorize]
+    [EnableCors("AnyGET")]
     [Produces("application/json")]
     [Route("api/Book")]
     public class BookKeeperController : Controller
     {
         private readonly IBookKeeperRepository _repository;
         private readonly ILogger<BookKeeperController> _logger;
+        private readonly UserManager<ApplicationIdentityUser> _UserManager;
 
         public BookKeeperController(IBookKeeperRepository context
-                                    , ILogger<BookKeeperController> logger)
+                                    , ILogger<BookKeeperController> logger
+                                    , UserManager<ApplicationIdentityUser> usermanager)
         {
             _repository = context;
             _logger = logger;
+            _UserManager = usermanager;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetBook()
         {
             int userid = 1;
-            return Json(await _repository.GettBooksByUser(userid));
 
+            var user = await _UserManager.FindByNameAsync(this.User.Identity.Name);
+            if (user != null)
+            {
+                _logger.LogInformation($"logged in user id{user.Id} and name {user.UserName}");
+                return Json(await _repository.GettBooksByUser(userid));
+            }
+            return BadRequest("User does not have access");
         }
 
 
@@ -56,6 +69,7 @@ namespace BookKeeperSPAAngular.Controllers
             return Ok(book);
         }
 
+        [EnableCors("sayedsaad07")]
         [HttpPost]
         public async Task<IActionResult> CreateNewBookItem([FromBody]BookKeeperViewModel bookKeeperVM)
         {

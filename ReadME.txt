@@ -106,3 +106,26 @@ command migration tools
 					info: Microsoft.EntityFrameworkCore.Infrastructure[100403]
 						  Entity Framework Core 2.0.0-rtm-26452 initialized 'BookKeeperContext' using provider 'Microsoft.EntityFrameworkCore.SqlServer' with options: None
 					Done. To undo this action, use 'ef migrations remove'
+
+
+
+SECURING WEBAPI
+1. add filters 
+	option.Filters.Add(new RequireHttpsAttribute());
+SSL
+2. Enable SSL in your project 
+3. Update launchsettings
+	"iisExpress": {
+      "applicationUrl": "http://localhost:2498/",
+      "sslPort": 44398
+    }
+4. add option.ssl = 44398
+CORS: Cross Origin Resource Sharing
+5. services.addCors 
+	add policies
+	Use EnableCors("PolicyName")
+
+User Identity
+ASNETCORE.IDENTITY
+	Services.AddIdentity 
+	app.UseAuthentication();

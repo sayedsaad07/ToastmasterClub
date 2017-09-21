@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace BookKeeperSPAAngular
 {
@@ -43,25 +44,98 @@ namespace BookKeeperSPAAngular
                     //,
                     //optionbuilder => optionbuilder.MigrationsAssembly("BookKeeperSPAAngularMigrationfile")
                     )
+                    //U can use imnMemory DB for simplicity
+                    //need to add Microsoft.EntityFrameworkCore.InMemory
+                    //options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
                     );
-            services.AddIdentity<ApplicationIdentityUser, IdentityRole>(options =>
-            {
-                //options.Cookies.ApplicationCookie.LoginPath = "/Account/SignIn";
-                //options.Password.RequireDigit
-            })
+            services.AddIdentity<ApplicationIdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<BookKeeperContext>()
             .AddDefaultTokenProviders();
 
+            services.Configure<IdentityOptions>(options =>
+            {
+                // Password settings
+                options.Password.RequireDigit = true;
+                //options.Password.RequiredLength = 8;
+                //options.Password.RequireNonAlphanumeric = false;
+                //options.Password.RequireUppercase = true;
+                //options.Password.RequireLowercase = false;
+                //options.Password.RequiredUniqueChars = 6;
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+                options.Lockout.MaxFailedAccessAttempts = 10;
+                options.Lockout.AllowedForNewUsers = true;
+
+                // User settings
+                options.User.RequireUniqueEmail = true;
+            });
+
+            ConfigureApplicationCookie(services);
             //register classes for IOC
             services.AddScoped<IBookKeeperRepository, BookKeeperRepository>();
             services.AddTransient<IMessageService, FileMessageService>();
-            services.AddMvc();
+            //add cross origin resource sharing
+            services.AddCors(cfg =>
+            {
+                cfg.AddPolicy("sayedsaad07", builder =>
+                {
+                    builder.AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .WithOrigins("http://sayedsaad07.com");
+                });
+                cfg.AddPolicy("AnyGET", builder =>
+                {
+                    builder.AllowAnyHeader()
+                    .WithMethods("GET")
+                    .AllowAnyOrigin();
+                });
+            });
             services.AddMvc(option =>
             {
-                //option.Filters.Add(new RequireHttpsAttribute());
+                if (_env.IsDevelopment())
+                {
+                    option.SslPort = 44398;
+                }
+                option.Filters.Add(new RequireHttpsAttribute());
             });
             //only first time
             services.AddScoped<InitBookKeeper>();
+        }
+
+        private static void ConfigureApplicationCookie(IServiceCollection services)
+        {
+            services.ConfigureApplicationCookie(options =>
+            {
+                // Cookie settings
+                options.Cookie.HttpOnly = true;
+                options.Cookie.Expiration = TimeSpan.FromDays(150);
+                options.LoginPath = "/Account/Login"; // If the LoginPath is not set here, ASP.NET Core will default to /Account/Login
+                options.LogoutPath = "/Account/Logout"; // If the LogoutPath is not set here, ASP.NET Core will default to /Account/Logout
+                options.AccessDeniedPath = "/Account/AccessDenied"; // If the AccessDeniedPath is not set here, ASP.NET Core will default to /Account/AccessDenied
+                options.SlidingExpiration = true;
+                options.Events = new CookieAuthenticationEvents()
+                {
+                    OnRedirectToLogin = (context) =>
+                    {
+                        if (context.Request.Path.StartsWithSegments("/api")
+                        && context.Response.StatusCode == 200)
+                        {
+                            context.Response.StatusCode = 401;
+                        }
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToAccessDenied = (context) =>
+                    {
+                        if (context.Request.Path.StartsWithSegments("/api")
+                        && context.Response.StatusCode == 200)
+                        {
+                            context.Response.StatusCode = 403;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -77,7 +151,7 @@ namespace BookKeeperSPAAngular
             {//dotnet run --environment "Development"
 
                 app.UseDeveloperExceptionPage();
-                dbContext.Database.Migrate(); //this will generate the db if it does not exist
+                //dbContext.Database.Migrate(); //this will generate the db if it does not exist
                 app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
                 {
                     HotModuleReplacement = true
@@ -87,6 +161,7 @@ namespace BookKeeperSPAAngular
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+            //use identity before using MVC
             app.UseAuthentication();
             app.UseStaticFiles();
 
