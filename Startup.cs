@@ -13,17 +13,25 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using BookKeeperSPAAngular.Model.SimpleTokenProvider;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using BookKeeperSPAAngular.Model.IdentitySecurity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace BookKeeperSPAAngular
 {
     public class Startup
     {
-        private IConfiguration _Configuration;
+        private IConfigurationRoot _Configuration;
         IHostingEnvironment _env;
-        public Startup(IConfiguration configuration, IHostingEnvironment env)
+        public Startup(//IConfigurationRoot configuration, 
+            IHostingEnvironment env)
         {
             _env = env;
-            _Configuration = configuration;
+            //_Configuration = configuration;
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -41,14 +49,9 @@ namespace BookKeeperSPAAngular
             services.AddDbContext<BookKeeperContext>(options
                 => options.UseSqlServer(
                         _Configuration.GetConnectionString("DefaultConnection")
-                    //,
-                    //optionbuilder => optionbuilder.MigrationsAssembly("BookKeeperSPAAngularMigrationfile")
                     )
-                    //U can use imnMemory DB for simplicity
-                    //need to add Microsoft.EntityFrameworkCore.InMemory
-                    //options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
                     );
-            services.AddIdentity<ApplicationIdentityUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<BookKeeperContext>()
             .AddDefaultTokenProviders();
 
@@ -71,7 +74,7 @@ namespace BookKeeperSPAAngular
                 options.User.RequireUniqueEmail = true;
             });
 
-            ConfigureApplicationCookie(services);
+            AddAuthentication(services);
             //register classes for IOC
             services.AddScoped<IBookKeeperRepository, BookKeeperRepository>();
             services.AddTransient<IMessageService, FileMessageService>();
@@ -103,39 +106,26 @@ namespace BookKeeperSPAAngular
             services.AddScoped<InitBookKeeper>();
         }
 
-        private static void ConfigureApplicationCookie(IServiceCollection services)
+        private void AddAuthentication(IServiceCollection services)
         {
-            services.ConfigureApplicationCookie(options =>
+            services.AddOptions();
+            services.Configure<TokenProviderOptions>(_Configuration.GetSection("Audience"));
+            var authconfig = new ConfigureAuthenticationService(configuration: _Configuration);
+            services.AddAuthentication()
+            //(options =>
+            //{
+            //    //CookieAuthenticationDefaults.AuthenticationScheme
+            //    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            //    //options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    //options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //})
+            .AddCookie(o => authconfig.ConfigureCookieOptions(o))
+            .AddJwtBearer(options =>
             {
-                // Cookie settings
-                options.Cookie.HttpOnly = true;
-                options.Cookie.Expiration = TimeSpan.FromDays(150);
-                options.LoginPath = "/Account/Login"; // If the LoginPath is not set here, ASP.NET Core will default to /Account/Login
-                options.LogoutPath = "/Account/Logout"; // If the LogoutPath is not set here, ASP.NET Core will default to /Account/Logout
-                options.AccessDeniedPath = "/Account/AccessDenied"; // If the AccessDeniedPath is not set here, ASP.NET Core will default to /Account/AccessDenied
-                options.SlidingExpiration = true;
-                options.Events = new CookieAuthenticationEvents()
-                {
-                    OnRedirectToLogin = (context) =>
-                    {
-                        if (context.Request.Path.StartsWithSegments("/api")
-                        && context.Response.StatusCode == 200)
-                        {
-                            context.Response.StatusCode = 401;
-                        }
-                        return Task.CompletedTask;
-                    },
-                    OnRedirectToAccessDenied = (context) =>
-                    {
-                        if (context.Request.Path.StartsWithSegments("/api")
-                        && context.Response.StatusCode == 200)
-                        {
-                            context.Response.StatusCode = 403;
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
+                authconfig.ConfigureJwtBearerOptionse(options);
             });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

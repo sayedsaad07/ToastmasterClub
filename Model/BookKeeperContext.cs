@@ -7,8 +7,12 @@ using System.Threading.Tasks;
 
 namespace BookKeeperSPAAngular.Model
 {
-    public class BookKeeperContext : IdentityDbContext<ApplicationIdentityUser>//: DbContext
+    public class BookKeeperContext : IdentityDbContext<ApplicationUser>//: DbContext
     {
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);  
+        }
         public BookKeeperContext(DbContextOptions<BookKeeperContext> contextOption) : base(contextOption) { }
         public DbSet<BookKeeper> BookKeeper { get; set; }
         public DbSet<BookKeeperUser> BookKeeperUser { get; set; }

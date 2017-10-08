@@ -9,10 +9,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace BookKeeperSPAAngular.Controllers
 {
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    //[Authorize]
     [EnableCors("AnyGET")]
     [Produces("application/json")]
     [Route("api/Book")]
@@ -20,11 +22,11 @@ namespace BookKeeperSPAAngular.Controllers
     {
         private readonly IBookKeeperRepository _repository;
         private readonly ILogger<BookKeeperController> _logger;
-        private readonly UserManager<ApplicationIdentityUser> _UserManager;
+        private readonly UserManager<ApplicationUser> _UserManager;
 
         public BookKeeperController(IBookKeeperRepository context
                                     , ILogger<BookKeeperController> logger
-                                    , UserManager<ApplicationIdentityUser> usermanager)
+                                    , UserManager<ApplicationUser> usermanager)
         {
             _repository = context;
             _logger = logger;
@@ -34,11 +36,20 @@ namespace BookKeeperSPAAngular.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBook()
         {
-            var user = await _UserManager.FindByNameAsync(this.User.Identity.Name);
-            if (user != null)
+            try
             {
-                _logger.LogInformation($"logged in user id{user.Id} and name {user.UserName}");
-                return Json(await _repository.GettBooksByUser(user.UserName));
+                var user = await _UserManager.FindByNameAsync(this.User.Identity.Name);
+                if (user != null)
+                {
+                    _logger.LogInformation($"logged in user id{user.Id} and name {user.UserName}");
+                    return Json(await _repository.GettBooksByUser(user.UserName));
+                }
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError($"throw exception from Get books{ex}");
+                return BadRequest("Invalid User");
             }
             return BadRequest("User does not have access");
         }

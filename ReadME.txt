@@ -129,3 +129,17 @@ User Identity
 ASNETCORE.IDENTITY
 	Services.AddIdentity 
 	app.UseAuthentication();
+
+
+
+Cokkies and basic login functions are available
+
+Now, Moving to JWT Token
+
+ASP.NET Core Token Authentication Guide
+https://stormpath.com/blog/token-authentication-asp-net-core
+
+MSDN ASP Core Authorization
+https://github.com/blowdart/AspNetAuthorizationWorkshop
+	Custom policy based
+			https://docs.microsoft.com/en-us/aspnet/core/security/authorization/policies

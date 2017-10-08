@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace BookKeeperSPAAngular.Model
 {
-    public class ApplicationIdentityUser : IdentityUser
+    public class ApplicationUser : IdentityUser
     {
-        public ApplicationIdentityUser()
+        public ApplicationUser()
         {
         }
 

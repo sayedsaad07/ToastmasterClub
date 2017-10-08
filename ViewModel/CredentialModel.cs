@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BookKeeperSPAAngular.Model
+namespace BookKeeperSPAAngular.ViewModel
 {
     public class UserCredentialModel
     {

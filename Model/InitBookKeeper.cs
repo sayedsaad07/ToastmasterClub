@@ -9,11 +9,11 @@ namespace BookKeeperSPAAngular.Model
     public class InitBookKeeper
     {
         private BookKeeperContext _DBContext;
-        private UserManager<ApplicationIdentityUser> _userManager;
+        private UserManager<ApplicationUser> _userManager;
         private RoleManager<IdentityRole> _roleMgr;
 
         public InitBookKeeper(BookKeeperContext dbcontext
-            , UserManager<ApplicationIdentityUser> userManager
+            , UserManager<ApplicationUser> userManager
             , RoleManager<IdentityRole> rolemgr)
         {
             _DBContext = dbcontext;
@@ -36,7 +36,7 @@ namespace BookKeeperSPAAngular.Model
                         await _roleMgr.CreateAsync(role);
 
                         var model = new { Email = "sayedsaad07@gmail.com", Password = "Test_123" };
-                        user = new ApplicationIdentityUser { UserName = model.Email, Email = model.Email, SecurityStamp = "111" };
+                        user = new ApplicationUser { UserName = model.Email, Email = model.Email, SecurityStamp = "111" };
                         var result = await _userManager.CreateAsync(user, model.Password);
                         if (result.Succeeded)
                         {
